@@ -1,3 +1,5 @@
+import re
+import pandas as pd
 
 
 na_list = []
@@ -39,4 +41,4 @@ def collision_check(x):
         else:
             continue
 
-collision_check(x=check_list)
+#collision_check(x=check_list)
