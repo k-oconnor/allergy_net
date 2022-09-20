@@ -1,10 +1,11 @@
+from multiprocessing.resource_sharer import stop
 import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn import BCELoss, MSELoss, CrossEntropyLoss
+from torch.nn import BCELoss, MSELoss, CrossEntropyLoss, ELU
 from torch.optim import SGD, Adam
-from torch import sigmoid,tanh,relu
+from torch import sigmoid,tanh,relu, prelu
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset,DataLoader
 import matplotlib.pyplot as plt
@@ -40,7 +41,7 @@ clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13'
 le = LabelEncoder()
 clean_data['Known_Allergen']= le.fit_transform(clean_data['Known_Allergen'])
 
-x_train,x_val = train_test_split(clean_data,test_size=0.05 , random_state=42)
+x_train,x_val = train_test_split(clean_data,test_size=0.05)
 
 ## Dataset constructor - Input is a dataframe, output is a dataset object with values encoded into tensors, with the
 ## required methods for length and retrieving an item by index.
@@ -67,23 +68,30 @@ class MyDataset(Dataset):
 ## To avoid the vanishing gradient problem, we use rectified linear unit activations on the two hidden layers.
 ## We pass the linear hidden layers through ReLU activations, and the final linear output layer through a sigmoid activation.
 ## This in effect is a multi-equation logistic regression for predicting class probabilities. 
+
+elu = nn.ELU()
+hardswish = nn.Hardswish()
+silu = nn.SiLU()
+
 class Net(nn.Module):
-    def __init__(self, D_in,H1,H2,D_out,H3):
+    def __init__(self, D_in,H1,H2,H3,D_out):
         super(Net,self).__init__()
         self.linear1 = nn.Linear(D_in,H1)
+        self.init = torch.nn.init.kaiming_normal_(self.linear1.weight)
         self.linear2 = nn.Linear(H1,H2)
-        self.linear3 = nn.Linear(H2,D_out)
-        self.linear4 = nn.Linear(D_out,H3)
+        self.linear3 = nn.Linear(H2,H3)
+        self.linear4 = nn.Linear(H3,D_out)
     
     def forward(self,x):
-        x = relu(self.linear1(x))
-        x = relu(self.linear2(x))
-        x = relu(self.linear3(x))
+        x = prelu(self.linear1(x), torch.tensor(.4, dtype = torch.float))
+        self.init
+        x = prelu(self.linear2(x), torch.tensor(.15, dtype = torch.float))
+        x = prelu(self.linear3(x), torch.tensor(.07, dtype = torch.float))
         x = sigmoid(self.linear4(x))
         return x
 
 ## We call the "Net" class to initialize the model. Net(Input_Dim, Hidden_Layer_1_Neurons, Hidden_Layer_2_Neurons, Output_Dim)
-model = Net(50,80,60,40,1)
+model = Net(50,200,100,50,1)
 
 ## We use binary cross entropy loss for measuring model performance. This is analogous to minimizing MSE in OLS.
 ## Description:(https://towardsdatascience.com/understanding-binary-cross-entropy-log-loss-a-visual-explanation-a3ac6025181a)
@@ -93,7 +101,7 @@ criterion = MSELoss()
 ## iterate over all parameters (tensors)it is supposed to update and use their internally stored grad to update their values.
 ## Learning rate is a key hyperparameter that determines how fast the network moves weights to gradient minima
 ## Weight decay is an optional hyperparameter which progressivly reduces |weights| each epoch, in effect penalizing overfitting.
-optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.001)
+optimizer = Adam(model.parameters(), lr=0.0007, weight_decay=0.0003)
 
 ## We call our dataset classes from our train/test split, and returns two dataset objects
 train_data = MyDataset(x_train)
@@ -102,8 +110,8 @@ val_data = MyDataset(x_val)
 ## DataLoader takes our dataset objects, and turns them into iterables. 
 ## Batch-size determines how many row tensors are passed to the model in each epoch.
 ## Setting shuffle to true, ensures that each batch is a random sample.
-train_loader = DataLoader(dataset = train_data, batch_size = 200, shuffle=True)
-val_loader = DataLoader(dataset = val_data, batch_size = 100, shuffle = True)
+train_loader = DataLoader(dataset = train_data, batch_size = 64, shuffle=True)
+val_loader = DataLoader(dataset = val_data, batch_size = 64, shuffle = True)
 
 
 # 50 is optimal???
@@ -111,7 +119,7 @@ val_loader = DataLoader(dataset = val_data, batch_size = 100, shuffle = True)
 
 loss_list = []                      ## We initialize two empty lists to append loss from each epoch to
 val_loss_list = []
-for epoch in range(50):             ## By inputing the range(x), we are choosing 'x' epochs to iterate over the training data
+for epoch in range(100):             ## By inputing the range(x), we are choosing 'x' epochs to iterate over the training data
     for x,y in train_loader:        ## Obtain samples for each batch
         optimizer.zero_grad()       ## Zero out the gradient
         y = y.unsqueeze(1)          ## Take targets tensor of shape [150] and coerces it to [150,1] 
@@ -119,7 +127,7 @@ for epoch in range(50):             ## By inputing the range(x), we are choosing
         loss = criterion(yhat,y)    ## Calculate loss
         loss.backward()             ## Differentiate loss w.r.t parameters
         optimizer.step()            ## Update parameters
-    
+
  ## Testing the updated parameters on the held validation data...   
     for w,z in val_loader:          ## Obtain samples for each batch
         z = z.unsqueeze(1)          ## Take targets tensor of shape [150] and coerces it to [150,1]
@@ -140,8 +148,6 @@ plt.xlabel("Epoch")
 plt.ylabel("MSE Loss")
 plt.show()
 
-
-
 y_test = x_val['Known_Allergen'].values
 x_test = x_val[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
 'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
@@ -158,7 +164,7 @@ test_result = model(x_test_var)
 
 aller_probs = test_result.detach().numpy()
 
-thresholds = [.35,.4,.45,.5,.55,.6]
+thresholds = [.35,.4,.45,.5,.55,.9]
 
 for th in thresholds:
     print('The metrics for cutoff value:', th)
@@ -179,7 +185,7 @@ for th in thresholds:
     recall = recall_score(y_test, test_pred)
     AUC_nn = roc_auc_score(y_test, test_pred)
 
-    print('[1] Neural Network Training Accuracy: ', accuracy_score(y_test,test_pred))
+    print('[1] Neural Network Testing Accuracy: ', accuracy_score(y_test,test_pred))
     print('Precision Score', precision)
     print('Recall Score', recall)
     print('Mean Absolute Error:', meanAbErr)
