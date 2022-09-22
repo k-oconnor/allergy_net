@@ -1,10 +1,9 @@
-from multiprocessing.resource_sharer import stop
 import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
 from torch.nn import BCELoss, MSELoss, CrossEntropyLoss, ELU
-from torch.optim import SGD, Adam
+from torch.optim import SGD, Adam, Adadelta, Adamax
 from torch import sigmoid,tanh,relu, prelu
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset,DataLoader
@@ -27,21 +26,39 @@ clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13'
 'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
 'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49','x50']].astype(float)
 
+clean_data.x34.fillna(0, inplace=True)
+clean_data.x35.fillna(0, inplace=True)
+clean_data.x36.fillna(0, inplace=True)
+clean_data.x37.fillna(0, inplace=True)
+clean_data.x38.fillna(0, inplace=True)
+clean_data.x39.fillna(0, inplace=True)
+clean_data.x40.fillna(0, inplace=True)
+clean_data.x41.fillna(0, inplace=True)
+clean_data.x42.fillna(0, inplace=True)
+clean_data.x43.fillna(0, inplace=True)
+clean_data.x44.fillna(0, inplace=True)
+clean_data.x45.fillna(0, inplace=True)
+clean_data.x46.fillna(0, inplace=True)
+clean_data.x47.fillna(0, inplace=True)
+clean_data.x48.fillna(0, inplace=True)
+clean_data.x49.fillna(0, inplace=True)
+clean_data.x50.fillna(0, inplace=True)
 
 std_scaler = StandardScaler()
 
-clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
-'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
-'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49',
-'x50']] = std_scaler.fit_transform(clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
-'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
-'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49','x50']])
+#clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
+#'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
+#'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49',
+#'x50']] = std_scaler.fit_transform(clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
+#'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
+#'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49','x50']])
 
 
 le = LabelEncoder()
 clean_data['Known_Allergen']= le.fit_transform(clean_data['Known_Allergen'])
 
 x_train,x_val = train_test_split(clean_data,test_size=0.05)
+
 
 ## Dataset constructor - Input is a dataframe, output is a dataset object with values encoded into tensors, with the
 ## required methods for length and retrieving an item by index.
@@ -73,35 +90,52 @@ elu = nn.ELU()
 hardswish = nn.Hardswish()
 silu = nn.SiLU()
 
+
+
+
+
+
 class Net(nn.Module):
-    def __init__(self, D_in,H1,H2,H3,D_out):
+    def __init__(self, D_in,H1,H2,H3,H4,D_out):
         super(Net,self).__init__()
         self.linear1 = nn.Linear(D_in,H1)
         self.init = torch.nn.init.kaiming_normal_(self.linear1.weight)
         self.linear2 = nn.Linear(H1,H2)
         self.linear3 = nn.Linear(H2,H3)
-        self.linear4 = nn.Linear(H3,D_out)
+        self.linear4 = nn.Linear(H3,H4)
+        self.linear5 = nn.Linear(H4,D_out)
     
     def forward(self,x):
-        x = prelu(self.linear1(x), torch.tensor(.4, dtype = torch.float))
+        #x = prelu(self.linear1(x), torch.tensor(.3, dtype = torch.float))
+        #self.init
+        #x = prelu(self.linear2(x), torch.tensor(.1, dtype = torch.float))
+        #x = prelu(self.linear3(x), torch.tensor(.05, dtype = torch.float))
+        #x = prelu(self.linear4(x), torch.tensor(.02, dtype = torch.float))
+        #x = sigmoid(self.linear5(x))
+
+        x = silu(self.linear1(x))
         self.init
-        x = prelu(self.linear2(x), torch.tensor(.15, dtype = torch.float))
-        x = prelu(self.linear3(x), torch.tensor(.07, dtype = torch.float))
-        x = sigmoid(self.linear4(x))
+        x = silu(self.linear2(x))
+        x = silu(self.linear3(x))
+        x = silu(self.linear4(x))
+        x = sigmoid(self.linear5(x))
         return x
 
 ## We call the "Net" class to initialize the model. Net(Input_Dim, Hidden_Layer_1_Neurons, Hidden_Layer_2_Neurons, Output_Dim)
-model = Net(50,200,100,50,1)
+model = Net(50,240,120,20,10,1)
 
 ## We use binary cross entropy loss for measuring model performance. This is analogous to minimizing MSE in OLS.
 ## Description:(https://towardsdatascience.com/understanding-binary-cross-entropy-log-loss-a-visual-explanation-a3ac6025181a)
-criterion = MSELoss()
+criterion = BCELoss()
 
 ## After computing the gradients for all tensors in the model, calling optimizer. step() makes the optimizer 
 ## iterate over all parameters (tensors)it is supposed to update and use their internally stored grad to update their values.
 ## Learning rate is a key hyperparameter that determines how fast the network moves weights to gradient minima
 ## Weight decay is an optional hyperparameter which progressivly reduces |weights| each epoch, in effect penalizing overfitting.
-optimizer = Adam(model.parameters(), lr=0.0007, weight_decay=0.0003)
+optimizer = Adam(model.parameters(), lr=0.0007, weight_decay=0.001, amsgrad=True)
+## amsgrad!
+
+#optimizer = torch.optim.Adadelta(model.parameters(), lr=1.0)
 
 ## We call our dataset classes from our train/test split, and returns two dataset objects
 train_data = MyDataset(x_train)
@@ -116,10 +150,9 @@ val_loader = DataLoader(dataset = val_data, batch_size = 64, shuffle = True)
 
 # 50 is optimal???
 ## ---------------- training the model  ---------------- ##
-
 loss_list = []                      ## We initialize two empty lists to append loss from each epoch to
 val_loss_list = []
-for epoch in range(100):             ## By inputing the range(x), we are choosing 'x' epochs to iterate over the training data
+for epoch in range(60):             ## By inputing the range(x), we are choosing 'x' epochs to iterate over the training data
     for x,y in train_loader:        ## Obtain samples for each batch
         optimizer.zero_grad()       ## Zero out the gradient
         y = y.unsqueeze(1)          ## Take targets tensor of shape [150] and coerces it to [150,1] 

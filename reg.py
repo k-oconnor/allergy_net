@@ -21,6 +21,25 @@ df[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','
 'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49','x50']].astype(float)
 
 
+df.x34.fillna(0, inplace=True)
+df.x35.fillna(0, inplace=True)
+df.x36.fillna(0, inplace=True)
+df.x37.fillna(0, inplace=True)
+df.x38.fillna(0, inplace=True)
+df.x39.fillna(0, inplace=True)
+df.x40.fillna(0, inplace=True)
+df.x41.fillna(0, inplace=True)
+df.x42.fillna(0, inplace=True)
+df.x43.fillna(0, inplace=True)
+df.x44.fillna(0, inplace=True)
+df.x45.fillna(0, inplace=True)
+df.x46.fillna(0, inplace=True)
+df.x47.fillna(0, inplace=True)
+df.x48.fillna(0, inplace=True)
+df.x49.fillna(0, inplace=True)
+df.x50.fillna(0, inplace=True)
+
+
 std_scaler = StandardScaler()
 
 df[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
@@ -30,8 +49,6 @@ df[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','
 'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
 'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49','x50']])
 
-
-
 le = LabelEncoder()
 df['Known_Allergen']= le.fit_transform(df['Known_Allergen'])
 
@@ -40,19 +57,20 @@ X = df[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x1
 'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
 'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49','x50']]
 
+
 X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.05,random_state=42)
 
 def train_models(X_train, y_train):
     
     #use Decision Tree
 
-    tree = DecisionTreeClassifier(max_depth = 20, random_state = 0)
+    tree = DecisionTreeClassifier(max_depth = 35, random_state = 0)
     tree.fit(X_train, y_train)
     y_pred_tree = tree.predict(X_test)
   
     #use the RandomForest classifier
 
-    rf = RandomForestClassifier(n_estimators = 200, max_features =35)
+    rf = RandomForestClassifier(n_estimators = 200, max_features = 32)
     rf.fit(X_train, y_train)
     y_pred_rf= rf.predict(X_test)
 
@@ -62,7 +80,7 @@ def train_models(X_train, y_train):
     y_pred_svc = svr.predict(X_test)
     
     #from sklearn.svm import SVC
-    svr_p= SVC(kernel = 'poly')
+    svr_p= SVC(kernel = 'linear')
     svr_p.fit(X_train, y_train)
     y_pred_svc_poly = svr_p.predict(X_test)
 
@@ -77,7 +95,7 @@ def train_models(X_train, y_train):
     y_pred_gbm = gbm.predict(X_test)
     
     # Using a logistic regression
-    logit = LogisticRegression(l1_ratio=.5 ,penalty='elasticnet', solver='saga')
+    logit = LogisticRegression()
     logit.fit(X_train,y_train)
     y_pred_logit = logit.predict(X_test)
     AUC_logit = roc_auc_score(y_test, y_pred_logit)
