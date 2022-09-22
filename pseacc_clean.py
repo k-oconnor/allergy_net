@@ -2,12 +2,12 @@ import re
 import pandas as pd
 
 complete_list = []
-with open('pseaac.csv', 'r') as q:
+with open('pseaac2.csv', 'r') as q:
     line = 0
-    while line < 5312:
+    while line < 12000:
         sub_list = []
         x = q.readline()
-        if x.startswith("N"):
+        if x.startswith("N") or x.startswith("\"N"):
             x = re.sub('[^A-Za-z0-9\s]', '', x)
             x = x[5:]
             x = x.strip()
@@ -16,7 +16,6 @@ with open('pseaac.csv', 'r') as q:
             row1 = q.readline()
             row1 = re.sub('[^0-9.,]', '', row1)
             row1 = row1.split(',')
-            print(row1)
             row2 = q.readline()
             row2 = re.sub('[^0-9.,]', '', row2)
             row2 = row2.split(',')
@@ -35,6 +34,7 @@ with open('pseaac.csv', 'r') as q:
             row1.extend(row5)
             sub_list.extend(row1)
             complete_list.append(sub_list)
+            line += 1
         else:
             continue
         line += 1
@@ -48,7 +48,7 @@ df = pd.DataFrame(complete_list,
 df['Known_Allergen'] = 0
 
 i = 0 
-while i <= 1323:
+while i <= 2530:
     df.at[i,'Known_Allergen']= 1
     i += 1
 
