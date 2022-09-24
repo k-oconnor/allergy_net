@@ -46,12 +46,12 @@ clean_data.x50.fillna(0, inplace=True)
 
 std_scaler = StandardScaler()
 
-#clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
-#'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
-#'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49',
-#'x50']] = std_scaler.fit_transform(clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
-#'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
-#'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49','x50']])
+clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
+'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
+'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49',
+'x50']] = std_scaler.fit_transform(clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
+'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
+'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49','x50']])
 
 
 le = LabelEncoder()
@@ -90,20 +90,14 @@ elu = nn.ELU()
 hardswish = nn.Hardswish()
 silu = nn.SiLU()
 
-
-
-
-
-
 class Net(nn.Module):
-    def __init__(self, D_in,H1,H2,H3,H4,D_out):
+    def __init__(self, D_in,H1,H2,H3,D_out):
         super(Net,self).__init__()
         self.linear1 = nn.Linear(D_in,H1)
         self.init = torch.nn.init.kaiming_normal_(self.linear1.weight)
         self.linear2 = nn.Linear(H1,H2)
         self.linear3 = nn.Linear(H2,H3)
-        self.linear4 = nn.Linear(H3,H4)
-        self.linear5 = nn.Linear(H4,D_out)
+        self.linear4 = nn.Linear(H3,D_out)
     
     def forward(self,x):
         #x = prelu(self.linear1(x), torch.tensor(.3, dtype = torch.float))
@@ -117,22 +111,21 @@ class Net(nn.Module):
         self.init
         x = silu(self.linear2(x))
         x = silu(self.linear3(x))
-        x = silu(self.linear4(x))
-        x = sigmoid(self.linear5(x))
+        x = sigmoid(self.linear4(x))
         return x
 
 ## We call the "Net" class to initialize the model. Net(Input_Dim, Hidden_Layer_1_Neurons, Hidden_Layer_2_Neurons, Output_Dim)
-model = Net(50,240,120,20,10,1)
+model = Net(50,214,137,40,1)
 
 ## We use binary cross entropy loss for measuring model performance. This is analogous to minimizing MSE in OLS.
 ## Description:(https://towardsdatascience.com/understanding-binary-cross-entropy-log-loss-a-visual-explanation-a3ac6025181a)
-criterion = BCELoss()
+criterion = MSELoss()
 
 ## After computing the gradients for all tensors in the model, calling optimizer. step() makes the optimizer 
 ## iterate over all parameters (tensors)it is supposed to update and use their internally stored grad to update their values.
 ## Learning rate is a key hyperparameter that determines how fast the network moves weights to gradient minima
 ## Weight decay is an optional hyperparameter which progressivly reduces |weights| each epoch, in effect penalizing overfitting.
-optimizer = Adam(model.parameters(), lr=0.0007, weight_decay=0.001, amsgrad=True)
+optimizer = Adam(model.parameters(), lr=0.00538, weight_decay=0.00023, amsgrad=True)
 ## amsgrad!
 
 #optimizer = torch.optim.Adadelta(model.parameters(), lr=1.0)
@@ -152,7 +145,7 @@ val_loader = DataLoader(dataset = val_data, batch_size = 64, shuffle = True)
 ## ---------------- training the model  ---------------- ##
 loss_list = []                      ## We initialize two empty lists to append loss from each epoch to
 val_loss_list = []
-for epoch in range(60):             ## By inputing the range(x), we are choosing 'x' epochs to iterate over the training data
+for epoch in range(150):             ## By inputing the range(x), we are choosing 'x' epochs to iterate over the training data
     for x,y in train_loader:        ## Obtain samples for each batch
         optimizer.zero_grad()       ## Zero out the gradient
         y = y.unsqueeze(1)          ## Take targets tensor of shape [150] and coerces it to [150,1] 
@@ -178,7 +171,7 @@ plt.plot(loss_list, linewidth=.5)
 plt.plot(val_loss_list, linewidth =.5)
 plt.legend(("Training Loss", "Validation Loss"))
 plt.xlabel("Epoch")
-plt.ylabel("MSE Loss")
+plt.ylabel("BCE Loss")
 plt.show()
 
 y_test = x_val['Known_Allergen'].values
