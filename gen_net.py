@@ -119,13 +119,13 @@ model = Net(50,214,137,40,1)
 
 ## We use binary cross entropy loss for measuring model performance. This is analogous to minimizing MSE in OLS.
 ## Description:(https://towardsdatascience.com/understanding-binary-cross-entropy-log-loss-a-visual-explanation-a3ac6025181a)
-criterion = MSELoss()
+criterion = BCELoss()
 
 ## After computing the gradients for all tensors in the model, calling optimizer. step() makes the optimizer 
 ## iterate over all parameters (tensors)it is supposed to update and use their internally stored grad to update their values.
 ## Learning rate is a key hyperparameter that determines how fast the network moves weights to gradient minima
 ## Weight decay is an optional hyperparameter which progressivly reduces |weights| each epoch, in effect penalizing overfitting.
-optimizer = Adam(model.parameters(), lr=0.00538, weight_decay=0.00023, amsgrad=True)
+optimizer = Adam(model.parameters(), lr=0.0014, weight_decay=0.00293, amsgrad=True)
 ## amsgrad!
 
 #optimizer = torch.optim.Adadelta(model.parameters(), lr=1.0)

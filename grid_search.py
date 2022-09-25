@@ -59,7 +59,7 @@ clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13'
 le = LabelEncoder()
 clean_data['Known_Allergen']= le.fit_transform(clean_data['Known_Allergen'])
 
-x_train,x_val = train_test_split(clean_data,test_size=0.05)
+x_train,x_val = train_test_split(clean_data,test_size=0.2)
 
 
 ## Dataset constructor - Input is a dataframe, output is a dataset object with values encoded into tensors, with the
@@ -82,11 +82,6 @@ class MyDataset(Dataset):
    
   def __getitem__(self,idx):
     return self.x_train[idx],self.y_train[idx]
-
-## Neural Net constructor - Input is a batch of tensors with explanatory variables with model specifications, and output are class predictions
-## To avoid the vanishing gradient problem, we use rectified linear unit activations on the two hidden layers.
-## We pass the linear hidden layers through ReLU activations, and the final linear output layer through a sigmoid activation.
-## This in effect is a multi-equation logistic regression for predicting class probabilities. 
 
 elu = nn.ELU()
 hardswish = nn.Hardswish()
@@ -126,7 +121,7 @@ def train_tune(config, checkpoint_dir=None):
     val_loader = DataLoader(dataset = val_data, batch_size = config["bs"], shuffle = True)
 
     
-    for epoch in range(100):  
+    for epoch in range(200):  
         running_loss = 0.0
         epoch_steps = 0
         for x,y in train_loader:        ## Obtain samples for each batch
@@ -175,7 +170,6 @@ def train_tune(config, checkpoint_dir=None):
         with tn.checkpoint_dir(epoch) as checkpoint_dir:
                 path = os.path.join(checkpoint_dir, "checkpoint")
                 torch.save((model.state_dict(), optimizer.state_dict()), path)
-        print(correct/total)
         tn.report(loss=(val_loss_total / val_steps), accuracy= correct/total)
     
     print("Finished Training!")
@@ -201,12 +195,12 @@ def test_accuracy(net):
 
 def main(num_samples=10, max_num_epochs=10):
     config ={
-    "H1": tn.choice([120,140,160,180,200,220,240,260]),
-    "H2": tn.choice([60,80,100,120,140,160,20,40]),
-    "H3": tn.sample_from(lambda _: 2 ** np.random.randint(2, 5)),
-    "lr": tn.loguniform(1e-4,1e-3),
+    "H1": tn.choice([200,205,210,211,212,213,214,215,216,220,240]),
+    "H2": tn.choice([120,130,135,140,145,150,155,160]),
+    "H3": tn.choice([30,35,40,45,50,55,60,65]),
+    "lr": tn.loguniform(1e-3,1e-2),
     "wd": tn.loguniform(1e-4,1e-2),
-    "bs": tn.choice([16,32,64,128,256])}
+    "bs": tn.choice([64,128])}
 
     scheduler = ASHAScheduler(
         metric="loss",
