@@ -91,19 +91,20 @@ hardswish = nn.Hardswish()
 silu = nn.SiLU()
 
 class Net(nn.Module):
-    def __init__(self, D_in,H1,H2,H3,D_out):
+    def __init__(self, D_in,H1,H2,H3,H4,D_out):
         super(Net,self).__init__()
         self.linear1 = nn.Linear(D_in,H1)
         self.init = torch.nn.init.kaiming_normal_(self.linear1.weight)
         self.linear2 = nn.Linear(H1,H2)
         self.linear3 = nn.Linear(H2,H3)
-        self.linear4 = nn.Linear(H3,D_out)
+        self.linear4 = nn.Linear(H3,H4)
+        self.linear5 = nn.Linear(H4,D_out)
     
     def forward(self,x):
-        #x = prelu(self.linear1(x), torch.tensor(.3, dtype = torch.float))
+        #x = prelu(self.linear1(x), torch.tensor(.6, dtype = torch.float))
         #self.init
-        #x = prelu(self.linear2(x), torch.tensor(.1, dtype = torch.float))
-        #x = prelu(self.linear3(x), torch.tensor(.05, dtype = torch.float))
+        #x = prelu(self.linear2(x), torch.tensor(.3, dtype = torch.float))
+        #x = prelu(self.linear3(x), torch.tensor(.15, dtype = torch.float))
         #x = prelu(self.linear4(x), torch.tensor(.02, dtype = torch.float))
         #x = sigmoid(self.linear5(x))
 
@@ -111,11 +112,12 @@ class Net(nn.Module):
         self.init
         x = silu(self.linear2(x))
         x = silu(self.linear3(x))
-        x = sigmoid(self.linear4(x))
+        x = silu(self.linear4(x))
+        x = sigmoid(self.linear5(x))
         return x
 
 ## We call the "Net" class to initialize the model. Net(Input_Dim, Hidden_Layer_1_Neurons, Hidden_Layer_2_Neurons, Output_Dim)
-model = Net(50,210,140,65,1)
+model = Net(50,220,141,50,50,1)
 
 ## We use binary cross entropy loss for measuring model performance. This is analogous to minimizing MSE in OLS.
 ## Description:(https://towardsdatascience.com/understanding-binary-cross-entropy-log-loss-a-visual-explanation-a3ac6025181a)
@@ -125,7 +127,7 @@ criterion = BCELoss()
 ## iterate over all parameters (tensors)it is supposed to update and use their internally stored grad to update their values.
 ## Learning rate is a key hyperparameter that determines how fast the network moves weights to gradient minima
 ## Weight decay is an optional hyperparameter which progressivly reduces |weights| each epoch, in effect penalizing overfitting.
-optimizer = Adam(model.parameters(), lr=0.00183, weight_decay=0.00155, amsgrad=True)
+optimizer = Adam(model.parameters(), lr=0.0028, weight_decay=0.0004, amsgrad=False)
 ## amsgrad!
 
 #optimizer = torch.optim.Adadelta(model.parameters(), lr=1.0)
@@ -201,6 +203,7 @@ plt.plot(acc, linewidth =.5)
 plt.legend("Validation Accuracy")
 plt.ylabel("Validation Accuracy")
 plt.xlabel("Batch")
+plt.grid()
 plt.show()
 
 
@@ -210,6 +213,10 @@ plt.legend(("Training Loss", "Validation Loss"))
 plt.xlabel("Epoch")
 plt.ylabel("BCE Loss")
 plt.show()
+
+torch.save(model.state_dict(),'best_model')
+
+
 
 y_test = x_val['Known_Allergen'].values
 x_test = x_val[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',

@@ -88,24 +88,26 @@ hardswish = nn.Hardswish()
 silu = nn.SiLU()
 
 class Net(nn.Module):
-    def __init__(self,H1=240,H2=120,H3=60):
+    def __init__(self,H1=240,H2=120,H3=60,H4=40):
         super(Net,self).__init__()
         self.linear1 = nn.Linear(50,H1)
         self.init = torch.nn.init.kaiming_normal_(self.linear1.weight)
         self.linear2 = nn.Linear(H1,H2)
         self.linear3 = nn.Linear(H2,H3)
-        self.linear4 = nn.Linear(H3,1)
+        self.linear4 = nn.Linear(H3,H4)
+        self.linear5 = nn.Linear(H4,1)
     
     def forward(self,x):
-        x = prelu(self.linear1(x), torch.tensor(.6, dtype = torch.float))
+        x = silu(self.linear1(x))
         self.init
-        x = prelu(self.linear2(x), torch.tensor(.3, dtype = torch.float))
-        x = prelu(self.linear3(x), torch.tensor(.05, dtype = torch.float))
-        x = sigmoid(self.linear4(x))
+        x = silu(self.linear2(x))
+        x = silu(self.linear3(x))
+        x = silu(self.linear4(x))
+        x = sigmoid(self.linear5(x))
         return x
 
 def train_tune(config, checkpoint_dir=None):
-    model = Net(H1 = config["H1"],H2 = config["H2"],H3 = config["H3"])
+    model = Net(H1 = config["H1"],H2 = config["H2"],H3 = config["H3"],H4=config["H4"])
     optimizer = Adam(model.parameters(), lr=config["lr"], weight_decay=config['wd'], amsgrad=True)
     #optimizer = torch.optim.Adadelta(model.parameters(), lr=1.0)
     criterion = BCELoss()
@@ -198,6 +200,7 @@ def main(num_samples=10, max_num_epochs=10):
     "H1": tn.choice([200,205,210,211,212,213,214,215,216,220,240]),
     "H2": tn.choice([120,130,135,140,145,150,155,160]),
     "H3": tn.choice([30,35,40,45,50,55,60,65]),
+    "H4": tn.choice([30,35,40,45,50,55,60,65]),
     "lr": tn.loguniform(1e-3,1e-2),
     "wd": tn.loguniform(1e-4,1e-2),
     "bs": tn.choice([64,128])}

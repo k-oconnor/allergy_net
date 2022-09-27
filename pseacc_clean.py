@@ -4,7 +4,7 @@ import pandas as pd
 complete_list = []
 with open('pseaac2.csv', 'r') as q:
     line = 0
-    while line < 13000:
+    while line < 17500:
         sub_list = []
         x = q.readline()
         if x.startswith("N") or x.startswith("\"N"):
