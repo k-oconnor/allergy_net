@@ -58,7 +58,7 @@ X = df[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x1
 'x35','x36','x37','x38','x39','x40','x41','x42','x43','x44','x45','x46','x47','x48','x49','x50']]
 
 
-X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.05,random_state=42)
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.05,random_state=41)
 
 def train_models(X_train, y_train):
     

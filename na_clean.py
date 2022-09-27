@@ -22,9 +22,9 @@ with open('clean_na.txt', 'w') as f:
         f.write('\n')
 
 check_list = []
-with open("check.txt", "r", encoding="utf8") as check_file:
+with open("clean_al2.txt", "r", encoding="utf8") as check_file:
     line = 0
-    while line <= 2500:
+    while line <= 5000:
         x = check_file.readline()
         if x.startswith(">"):
             y = check_file.readline()
@@ -38,7 +38,8 @@ def collision_check(x):
     for seq in x:
         if seq in na_list:
             print("Collision detected")
+            print(seq)
         else:
             continue
 
-#collision_check(x=check_list)
+collision_check(x=check_list)

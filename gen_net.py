@@ -115,7 +115,7 @@ class Net(nn.Module):
         return x
 
 ## We call the "Net" class to initialize the model. Net(Input_Dim, Hidden_Layer_1_Neurons, Hidden_Layer_2_Neurons, Output_Dim)
-model = Net(50,214,137,40,1)
+model = Net(50,210,140,65,1)
 
 ## We use binary cross entropy loss for measuring model performance. This is analogous to minimizing MSE in OLS.
 ## Description:(https://towardsdatascience.com/understanding-binary-cross-entropy-log-loss-a-visual-explanation-a3ac6025181a)
@@ -125,7 +125,7 @@ criterion = BCELoss()
 ## iterate over all parameters (tensors)it is supposed to update and use their internally stored grad to update their values.
 ## Learning rate is a key hyperparameter that determines how fast the network moves weights to gradient minima
 ## Weight decay is an optional hyperparameter which progressivly reduces |weights| each epoch, in effect penalizing overfitting.
-optimizer = Adam(model.parameters(), lr=0.0014, weight_decay=0.00293, amsgrad=True)
+optimizer = Adam(model.parameters(), lr=0.00183, weight_decay=0.00155, amsgrad=True)
 ## amsgrad!
 
 #optimizer = torch.optim.Adadelta(model.parameters(), lr=1.0)
@@ -145,7 +145,8 @@ val_loader = DataLoader(dataset = val_data, batch_size = 64, shuffle = True)
 ## ---------------- training the model  ---------------- ##
 loss_list = []                      ## We initialize two empty lists to append loss from each epoch to
 val_loss_list = []
-for epoch in range(150):             ## By inputing the range(x), we are choosing 'x' epochs to iterate over the training data
+acc = []
+for epoch in range(50):             ## By inputing the range(x), we are choosing 'x' epochs to iterate over the training data
     for x,y in train_loader:        ## Obtain samples for each batch
         optimizer.zero_grad()       ## Zero out the gradient
         y = y.unsqueeze(1)          ## Take targets tensor of shape [150] and coerces it to [150,1] 
@@ -155,11 +156,40 @@ for epoch in range(150):             ## By inputing the range(x), we are choosin
         optimizer.step()            ## Update parameters
 
  ## Testing the updated parameters on the held validation data...   
-    for w,z in val_loader:          ## Obtain samples for each batch
-        z = z.unsqueeze(1)          ## Take targets tensor of shape [150] and coerces it to [150,1]
-        y_val_hat = model(w)        ## Make a prediction
-        val_loss = criterion(y_val_hat,z)      ## Calculate loss
+    val_steps = 0
+    total = 0
+    correct = 0
+    val_loss_total = 0.0
 
+    with torch.no_grad():
+        for w,z in enumerate(val_loader,0):
+            inputs,labels = z 
+            outputs = model(inputs)
+            labels = labels.unsqueeze(1)
+            val_loss = criterion(outputs,labels)
+            val_loss_total += loss.numpy()
+            val_steps += 1
+    
+            aller_probs = outputs.detach().numpy()
+            labels = labels.detach().numpy()
+
+            pred_list = []
+            for item in aller_probs:
+                if item > .5:
+                    pred_list.append(1)
+                else:
+                    pred_list.append(0)
+
+            i=0
+            while i < len(aller_probs):
+                if pred_list[i] == labels[i]:
+                    correct +=1
+                    total += 1
+                    i += 1
+                else:
+                    total +=1
+                    i +=1
+            acc.append(correct/total)
 ## At each epoch, we append the calculated loss to a list, so we can graph it's change over time...
     if epoch:
         loss_list.append(loss.item())
@@ -167,6 +197,13 @@ for epoch in range(150):             ## By inputing the range(x), we are choosin
 print("Finished Training!")
 
 ## A simple plotting function for showing loss changes over time as parameters are updated...
+plt.plot(acc, linewidth =.5)
+plt.legend("Validation Accuracy")
+plt.ylabel("Validation Accuracy")
+plt.xlabel("Batch")
+plt.show()
+
+
 plt.plot(loss_list, linewidth=.5)
 plt.plot(val_loss_list, linewidth =.5)
 plt.legend(("Training Loss", "Validation Loss"))
