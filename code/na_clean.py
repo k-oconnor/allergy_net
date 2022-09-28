@@ -3,9 +3,9 @@ import pandas as pd
 
 
 na_list = []
-with open("training_100", "r", encoding="utf8") as in_file:
+with open("training_1002", "r", encoding="utf8") as in_file:
     line = 0
-    while line <= 1000000:
+    while line <= 100000000:
         x = in_file.readline()
         if x.startswith("[ID]"):
             y = in_file.readline()
