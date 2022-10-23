@@ -1,0 +1,53 @@
+The metrics for cutoff value: 0.35
+[1] Neural Network Testing Accuracy:  0.9474885844748858
+Precision Score 0.8613861386138614
+Recall Score 0.90625
+Mean Absolute Error: 0.05251141552511415
+Mean Square Error: 0.05251141552511415
+Root Mean Square Error: 0.22915369411186493
+AUC: 0.93265716374269
+	
+The metrics for cutoff value: 0.4
+[1] Neural Network Testing Accuracy:  0.9474885844748858
+Precision Score 0.8686868686868687
+Recall Score 0.8958333333333334
+Mean Absolute Error: 0.05251141552511415
+Mean Square Error: 0.05251141552511415
+Root Mean Square Error: 0.22915369411186493
+AUC: 0.9289108187134504
+	
+The metrics for cutoff value: 0.45
+[1] Neural Network Testing Accuracy:  0.9497716894977168
+Precision Score 0.8775510204081632
+Recall Score 0.8958333333333334
+Mean Absolute Error: 0.0502283105022831
+Mean Square Error: 0.0502283105022831
+Root Mean Square Error: 0.22411673409695024
+AUC: 0.930372807017544
+	
+The metrics for cutoff value: 0.5
+[1] Neural Network Testing Accuracy:  0.9497716894977168
+Precision Score 0.8775510204081632
+Recall Score 0.8958333333333334
+Mean Absolute Error: 0.0502283105022831
+Mean Square Error: 0.0502283105022831
+Root Mean Square Error: 0.22411673409695024
+AUC: 0.930372807017544
+	
+The metrics for cutoff value: 0.55
+[1] Neural Network Testing Accuracy:  0.9497716894977168
+Precision Score 0.8775510204081632
+Recall Score 0.8958333333333334
+Mean Absolute Error: 0.0502283105022831
+Mean Square Error: 0.0502283105022831
+Root Mean Square Error: 0.22411673409695024
+AUC: 0.930372807017544
+	
+The metrics for cutoff value: 0.9
+[1] Neural Network Testing Accuracy:  0.9383561643835616
+Precision Score 0.896551724137931
+Recall Score 0.8125
+Mean Absolute Error: 0.06164383561643835
+Mean Square Error: 0.06164383561643835
+Root Mean Square Error: 0.24828176658071038
+AUC: 0.8930921052631579

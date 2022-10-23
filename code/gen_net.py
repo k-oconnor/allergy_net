@@ -10,14 +10,12 @@ from torch.utils.data import Dataset,DataLoader
 import matplotlib.pyplot as plt
 from torch.autograd import Variable
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import mean_absolute_error,mean_squared_error,accuracy_score,roc_auc_score,precision_score, recall_score
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 
-clean_data = pd.read_csv("clean_data.csv")
 
-clean_data = pd.read_csv('clean_data.csv', index_col=None)
+clean_data = pd.read_csv('code/clean_data.csv', index_col=None)
 
 clean_data[['x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15','x16',
 'x17','x18','x19','x20','x21','x22','x23','x24','x25','x26','x27','x28','x29','x30','x31','x32','x33','x34',
@@ -117,7 +115,7 @@ class Net(nn.Module):
         return x
 
 ## We call the "Net" class to initialize the model. Net(Input_Dim, Hidden_Layer_1_Neurons, Hidden_Layer_2_Neurons, Output_Dim)
-model = Net(50,220,141,50,50,1)
+model = Net(50,210,140,46,30,1)
 
 ## We use binary cross entropy loss for measuring model performance. This is analogous to minimizing MSE in OLS.
 ## Description:(https://towardsdatascience.com/understanding-binary-cross-entropy-log-loss-a-visual-explanation-a3ac6025181a)
@@ -127,7 +125,7 @@ criterion = BCELoss()
 ## iterate over all parameters (tensors)it is supposed to update and use their internally stored grad to update their values.
 ## Learning rate is a key hyperparameter that determines how fast the network moves weights to gradient minima
 ## Weight decay is an optional hyperparameter which progressivly reduces |weights| each epoch, in effect penalizing overfitting.
-optimizer = Adam(model.parameters(), lr=0.0028, weight_decay=0.0004, amsgrad=False)
+optimizer = Adam(model.parameters(), lr=0.00284, weight_decay=0.000198, amsgrad=False)
 ## amsgrad!
 
 #optimizer = torch.optim.Adadelta(model.parameters(), lr=1.0)
@@ -148,7 +146,7 @@ val_loader = DataLoader(dataset = val_data, batch_size = 64, shuffle = True)
 loss_list = []                      ## We initialize two empty lists to append loss from each epoch to
 val_loss_list = []
 acc = []
-for epoch in range(50):             ## By inputing the range(x), we are choosing 'x' epochs to iterate over the training data
+for epoch in range(40):             ## By inputing the range(x), we are choosing 'x' epochs to iterate over the training data
     for x,y in train_loader:        ## Obtain samples for each batch
         optimizer.zero_grad()       ## Zero out the gradient
         y = y.unsqueeze(1)          ## Take targets tensor of shape [150] and coerces it to [150,1] 
