@@ -105,7 +105,7 @@ tup = list(zip(name,clean_list))
 
 count = 0
 for x,y in tup:
-    if y > .99999999:
+    if y > .5:
         print(x)
         print(y)
         count +=1

@@ -251,11 +251,13 @@ for th in thresholds:
     rootMeanSqErr = np.sqrt(mean_squared_error(y_test, test_pred))
     precision = precision_score(y_test, test_pred)
     recall = recall_score(y_test, test_pred)
+    specificity = recall_score(y_test, test_pred, pos_label=0)
     AUC_nn = roc_auc_score(y_test, test_pred)
 
     print('[1] Neural Network Testing Accuracy: ', accuracy_score(y_test,test_pred))
     print('Precision Score', precision)
     print('Recall Score', recall)
+    print('Specificity', specificity)
     print('Mean Absolute Error:', meanAbErr)
     print('Mean Square Error:', meanSqErr)
     print('Root Mean Square Error:', rootMeanSqErr)
